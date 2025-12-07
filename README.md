@@ -32,4 +32,4 @@
 
 ## Контакты
 
-Связаться со мной можно используя Telegram бота: https://t.me/zieng2bot
+Для связи используйте Telegram-бота: https://t.me/zieng2bot
