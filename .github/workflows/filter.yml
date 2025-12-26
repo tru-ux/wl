@@ -2,8 +2,7 @@ name: Auto filter VLESS list
 permissions:
   contents: write
 on:
-  on:
-  schedule:
+   schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch:
 
