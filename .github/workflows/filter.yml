@@ -1,8 +1,10 @@
 name: Auto filter VLESS list
+
 permissions:
   contents: write
+
 on:
-   schedule:
+  schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch:
 
@@ -19,19 +21,16 @@ jobs:
       - name: Remove unwanted countries
         run: |
           grep -v -E "🇷🇺|RU|cloud\.ru|Yandex|VK|Beget|Baxet|masterhost|Selectel|Timeweb|Moscow|MSK|🇨🇳|CN|🇮🇷|IR" source.txt > filtered.txt
+
       - name: Save result
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          # Подтянуть актуальный main и “поставить себя” поверх него
           git fetch origin main
           git checkout main
           git reset --hard origin/main
 
-          # Записать новый filtered.txt (он уже создан на предыдущем шаге)
           git add filtered.txt
           git commit -m "auto update filtered list" || true
-
-          # Пушим поверх, чтобы не было fetch-first конфликтов
           git push --force origin main
