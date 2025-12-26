@@ -22,6 +22,14 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
+          # Всегда работаем с актуальным main
+          git fetch origin main
+          git reset --hard origin/main
+
+          # Кладём новый filtered.txt
+          mv filtered.txt filtered.txt
+
           git add filtered.txt
           git commit -m "auto update filtered list" || true
-          git push --force
+          git push --force origin HEAD:main
