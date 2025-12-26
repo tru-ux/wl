@@ -17,8 +17,7 @@ jobs:
 
       - name: Remove unwanted countries
         run: |
-          grep -v -E "🇷🇺|RU|🇨🇳|CN|🇮🇷|IR" source.txt > filtered.txt
-
+          grep -v -E "🇷🇺|RU|cloud\.ru|Yandex|VK|Beget|Baxet|masterhost|Selectel|Timeweb|Moscow|MSK|🇨🇳|CN|🇮🇷|IR" source.txt > filtered.txt
       - name: Save result
         run: |
           git config user.name "github-actions"
