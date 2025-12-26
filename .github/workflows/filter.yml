@@ -24,4 +24,4 @@ jobs:
           git config user.email "actions@github.com"
           git add filtered.txt
           git commit -m "auto update filtered list" || true
-          git push
+          git push --force
