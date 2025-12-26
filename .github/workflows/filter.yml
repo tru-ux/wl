@@ -1,8 +1,9 @@
 name: Auto filter VLESS list
-
+permissions:
+  contents: write
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "n: "0 */6 *"
   workflow_dispatch:
 
 jobs:
@@ -23,13 +24,14 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          # Всегда работаем с актуальным main
+          # Подтянуть актуальный main и “поставить себя” поверх него
           git fetch origin main
+          git checkout main
           git reset --hard origin/main
 
-          # Кладём новый filtered.txt
-          mv filtered.txt filtered.txt
-
+          # Записать новый filtered.txt (он уже создан на предыдущем шаге)
           git add filtered.txt
           git commit -m "auto update filtered list" || true
-          git push --force origin HEAD:main
+
+          # Пушим поверх, чтобы не было fetch-first конфликтов
+          git push --force origin main
