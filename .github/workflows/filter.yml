@@ -1,15 +1,33 @@
+name: Auto filter VLESS list
 
-- name: Remove unwanted countries (robust)
+permissions:
+  contents: write
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download original list
+        run: |
+          curl -L https://raw.githubusercontent.com/zieng2/wl/main/vless_lite.txt -o source.txt
+
+      - name: Remove unwanted countries (robust)
         run: |
           python3 - <<'PY'
-          import urllib.parse, sys, re
+          import urllib.parse, re
 
           banned = [
-              'beget', 'yandex', 'vk', 'cloud.ru', 'masterhost', 'baxet',
-              'selectel', 'timeweb'
+              'beget', 'yandex', 'vk', 'cloud.ru', 'masterhost',
+              'baxet', 'selectel', 'timeweb'
           ]
 
-          # Также баним любые упоминания RU/Россия в декодированном имени
           banned_re = re.compile(r'(?:\bru\b|russia|россия|moscow|msk)', re.I)
 
           out = []
@@ -19,23 +37,16 @@
                   if not s:
                       continue
 
-                  # Декодируем только "название" после # (там обычно флаг/провайдер/страна)
                   name = ''
                   if '#' in s:
-                      name = s.split('#', 1)[1]
-                      name = urllib.parse.unquote(name)
+                      name = urllib.parse.unquote(s.split('#', 1)[1])
 
                   name_l = name.lower()
 
-                  # Бан по ключевым словам в названии
                   if any(x in name_l for x in banned):
                       continue
-
-                  # Бан по RU/Россия и т.п.
                   if banned_re.search(name):
                       continue
-
-                  # Бан по флагу РФ, если вдруг он есть в декодированном виде
                   if '🇷🇺' in name:
                       continue
 
@@ -46,3 +57,16 @@
 
           print("Kept:", len(out))
           PY
+
+      - name: Save result
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+
+          git add filtered.txt
+          git commit -m "auto update filtered list" || true
+          git push --force origin main
