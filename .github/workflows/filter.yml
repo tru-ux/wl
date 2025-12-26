@@ -20,7 +20,7 @@ jobs:
 
       - name: Remove unwanted countries
         run: |
-          grep -v -E "🇷🇺|RU|cloud\.ru|Yandex|VK|Beget|Baxet|masterhost|Selectel|Timeweb|Moscow|MSK|🇨🇳|CN|🇮🇷|IR" source.txt > filtered.txt
+          grep -v -E "cloud\.ru|%2Fcloud\.ru|Beget|%20Beget%20|VK|%20VK%20|Yandex|%20Yandex%20|Baxet|masterhost|Selectel|Timeweb|Moscow|MSK|%F0%9F%87%B7%F0%9F%87%BA|🇷🇺|RU|🇨🇳|CN|🇮🇷|IR" source.txt > filtered.txt
 
       - name: Save result
         run: |
