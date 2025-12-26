@@ -1,36 +1,48 @@
-name: Auto filter VLESS list
 
-permissions:
-  contents: write
-
-on:
-  schedule:
-    - cron: "0 */6 * * *"
-  workflow_dispatch:
-
-jobs:
-  filter:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download original list
+- name: Remove unwanted countries (robust)
         run: |
-          curl -L https://raw.githubusercontent.com/zieng2/wl/main/vless_lite.txt -o source.txt
+          python3 - <<'PY'
+          import urllib.parse, sys, re
 
-      - name: Remove unwanted countries
-        run: |
-          grep -v -E "cloud\.ru|%2Fcloud\.ru|Beget|%20Beget%20|VK|%20VK%20|Yandex|%20Yandex%20|Baxet|masterhost|Selectel|Timeweb|Moscow|MSK|%F0%9F%87%B7%F0%9F%87%BA|🇷🇺|RU|🇨🇳|CN|🇮🇷|IR" source.txt > filtered.txt
+          banned = [
+              'beget', 'yandex', 'vk', 'cloud.ru', 'masterhost', 'baxet',
+              'selectel', 'timeweb'
+          ]
 
-      - name: Save result
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          # Также баним любые упоминания RU/Россия в декодированном имени
+          banned_re = re.compile(r'(?:\bru\b|russia|россия|moscow|msk)', re.I)
 
-          git fetch origin main
-          git checkout main
-          git reset --hard origin/main
+          out = []
+          with open('source.txt', 'r', encoding='utf-8', errors='ignore') as f:
+              for line in f:
+                  s = line.strip()
+                  if not s:
+                      continue
 
-          git add filtered.txt
-          git commit -m "auto update filtered list" || true
-          git push --force origin main
+                  # Декодируем только "название" после # (там обычно флаг/провайдер/страна)
+                  name = ''
+                  if '#' in s:
+                      name = s.split('#', 1)[1]
+                      name = urllib.parse.unquote(name)
+
+                  name_l = name.lower()
+
+                  # Бан по ключевым словам в названии
+                  if any(x in name_l for x in banned):
+                      continue
+
+                  # Бан по RU/Россия и т.п.
+                  if banned_re.search(name):
+                      continue
+
+                  # Бан по флагу РФ, если вдруг он есть в декодированном виде
+                  if '🇷🇺' in name:
+                      continue
+
+                  out.append(s)
+
+          with open('filtered.txt', 'w', encoding='utf-8') as f:
+              f.write('\n'.join(out) + '\n')
+
+          print("Kept:", len(out))
+          PY
