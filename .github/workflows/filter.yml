@@ -1,0 +1,28 @@
+name: Auto filter VLESS list
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download original list
+        run: |
+          curl -L https://raw.githubusercontent.com/zieng2/wl/main/vless_lite.txt -o source.txt
+
+      - name: Remove unwanted countries
+        run: |
+          grep -v -E "🇷🇺|RU|🇨🇳|CN|🇮🇷|IR" source.txt > filtered.txt
+
+      - name: Save result
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add filtered.txt
+          git commit -m "auto update filtered list" || true
+          git push
